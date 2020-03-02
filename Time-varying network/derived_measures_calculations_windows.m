@@ -5,9 +5,9 @@ clear;
 clc;
 
 %% specify dataset and parameters
-dataSet = 39; % only 18 or 39
+dataSet = 18; % only 18 or 39
 %windowSize = 3; % size in days
-printSummaries = 1; % set to 1 to save summary tables to file
+printSummaries = 0; % set to 1 to save summary tables to file
 printTables = 0; % set to 1 to write measure-specific tables to file
 saveData = 0; % set to 1 to save measure-specific data matrices
 

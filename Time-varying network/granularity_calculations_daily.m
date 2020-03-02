@@ -6,7 +6,7 @@ clc;
 
 %% specify dataset
 dataSet = 18; % only 18 or 39 for now
-imputeData = 1; % set to 1 to impute values for missing days
+imputeData = 0; % set to 1 to impute values for missing days
 print = 0; % set to 1 to print data to file
 saveData = 0; % set to 1 to save measure-specific data matrices
 
