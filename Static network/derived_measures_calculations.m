@@ -2,8 +2,8 @@ clear;
 clc;
 
 %% specify dataset and parameters
-dataSet = 18; % set to 18, 39, or 88
-print = 1;
+dataSet = 88; % set to 18, 39, or 88
+print = 0;
 
 %% load data file, along with word file that includes raw norms
 if dataSet == 18

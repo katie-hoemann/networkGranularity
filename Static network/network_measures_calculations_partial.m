@@ -8,7 +8,7 @@ dataSet = 39; % set to 18, 39, or 88
 print = 0;
 test = 1; % set to 1 to correlate network measures with outcome variables
 spanningTree = 0; % set to 1 to prune network using minimum spanning tree
-backbone = 1; % set to 1 to prune network using backbone
+backbone = 0; % set to 1 to prune network using backbone
 
 %% load data file, along with word file that includes raw norms
 if dataSet == 18
@@ -24,6 +24,7 @@ end
 rawData = importdata(dataFile);
 allData = rawData.data;
 subjectIDlist = unique(rawData.data(:,1)); % grab subject IDs from first column of data file
+deletedSubjects = [];
 words = readtable(wordFile); 
 wordList = rawData.colheaders(2:end)';  % grab sampled words from top row of data file
 

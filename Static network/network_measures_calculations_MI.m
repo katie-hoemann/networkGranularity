@@ -6,7 +6,7 @@ clc;
 %% specify dataset and parameters
 dataSet = 18; % set to 18, 39, or 88
 print = 0; 
-test = 0; % set to 1 to correlate network measures with outcome variables
+test = 1; % set to 1 to correlate network measures with outcome variables
 
 %% load data file, along with word file that includes raw norms
 if dataSet == 18

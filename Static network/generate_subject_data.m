@@ -7,14 +7,14 @@ clear;
 clc;
 
 %% specify dataset and subject number, whether to print results to file, version parameters
-dataSet = 18; % set to 18, 39, or 88
-subjectID = 38;
-print = 0; % set to 1 to print subject matrix and community assignment
+dataSet = 39; % set to 18, 39, or 88
+subjectID = 38; %in DS18: 19 and 21 have high gran/4 com; 55 and 56 have low gran/2 com; in DS39: 5, 7, and 17 have low/2; 2, 32, and 40 have high/4; 38 has 5 com
+print = 1; % set to 1 to print subject matrix and community assignment
 noNeg = 0; % sets negative weights to 0 (maintains positive weights)
 binarize = 0; % sets negative weights to 0, positive weights to 1
 polychoric = 0; % set to 0 to use standard Pearson correlation matrix
 threshold = 0; % set > 0 to remove weak correlations below given absolute value
-defaultGamma = 0; % set to 1 to use default gamma value of 1
+defaultGamma = 1; % set to 1 to use default gamma value of 1
 B = 'negative_asym'; % set to negative_sym, negative_asym, or modularity
 
 %% load data file, along with word file that includes raw norms
@@ -140,24 +140,60 @@ elseif dataSet == 88
 else
     gamma = 1; % default value
 end
-W = subjectMatrix;  % set subject matrix
-n = size(W,1);      % number of nodes
-M = 1:n;            % initial community affiliations
-Q0 = -1; Q = 0;    % initialize modularity values
-    while Q - Q0 > 1e-5    % while modularity increases
-        Q0 = Q;            % perform community detection
-        [M, Q] = community_louvain(W,gamma,[],B); 
+% run community detection, iterating 1000x to maximize Q
+for i_iter = 1:1000
+    W = subjectMatrix;  % set subject matrix
+    n = size(W,1);      % number of nodes
+    M = 1:n;            % initial community affiliations
+    Q0 = -1; Q = 0;    % initialize modularity values
+        while Q - Q0 > 1e-5    % while modularity increases
+            Q0 = Q;            % perform community detection
+            [M, Q] = community_louvain(W,gamma,[],B); 
+        end
+    communityAssignment_Iter(:,i_iter) = M; % save community assignment vector for given iteration
+    modularity_Iter(i_iter) = Q; % save modularity value for given iteration
+end
+maxModularity_Index = find(modularity_Iter==max(modularity_Iter));
+if numel(maxModularity_Index) > 1
+    maxModularity_Index = maxModularity_Index(1);
+end
+communityAssignment = communityAssignment_Iter(:,maxModularity_Index); % save community assignment vector    
+numCommunities = max(communityAssignment);   % save number of communities
+
+%% prep data for use in Gephi
+% prune edges for display using backbone
+[nRow,nCol] = size(subjectMatrix); % get size of original matrix for later use
+subjectMatrixNeg = subjectMatrix<0; % capture where negative weights occurred in original matrix
+subjectMatrixAbs = abs(subjectMatrix); % create positive-only matrix
+[~,subjectMatrixAbs] = backbone_wu(subjectMatrixAbs,round(nCol-(nCol/2))); % create network backbone (positive edges only)
+for i_cell = 1:numel(subjectMatrixAbs) % reset negative edge weights where they occurred in the original matrix
+    if subjectMatrixNeg(i_cell) == 1
+        subjectMatrixBackbone(i_cell) = subjectMatrixAbs(i_cell)*-1;
+    else
+        subjectMatrixBackbone(i_cell) = subjectMatrixAbs(i_cell);
     end
-numCommunities = max(M);   % save number of communities
+end
+subjectMatrixBackbone = reshape(subjectMatrixBackbone,nRow,nCol); % reshape matrix to original dimensions
+G = graph(subjectMatrixBackbone,remainingNodes); % create graph object (use plot function to visualize)
+negEdges = G.Edges.Weight<0; % identify negative edges
+subjectEdgesBackbone = G.Edges; % return the edge list
+isNeg = array2table(negEdges,'VariableNames',{'IsNeg'}); % create array for negative weight index
+absWeight = abs(table2array(subjectEdgesBackbone(:,2))); % create array for absolute value weight
+absWeight = array2table(absWeight,'VariableNames',{'absWeight'});
+subjectEdgesBackbone = [subjectEdgesBackbone absWeight isNeg]; % add arrays to edge list
+subjectEdgesBackbone(:,2) = []; % remove unnecessary variable
+subjectEdgesBackbone = splitvars(subjectEdgesBackbone); % split nested edges columns
+subjectEdgesBackbone.Properties.VariableNames = {'Source' 'Target' 'Weight' 'IsNeg'}; % relabel columns for Gephi import
 
 %% write results
 rowNames = remainingNodes;
 colNames = remainingNodes;
 matrix = array2table(subjectMatrix,'RowNames',rowNames,'VariableNames',colNames);
-communities = array2table(M,'RowNames',rowNames);
-communities = sortrows(communities,1);
-
+communities = array2table(communityAssignment);
+communities = horzcat(rowNames,lower(rowNames),communities); % add columns for node ID and name
+communities.Properties.VariableNames = {'Id' 'Label' 'Community'}; % relabel columns for Gephi import
 if print == 1
-    writetable(matrix,'subject_correlation_matrix.xlsx');
-    writetable(communities,'subject_community_assignment.xlsx');
+    writetable(matrix,['subject' num2str(subjectID) '_correlation_matrix.xlsx']);
+    writetable(subjectEdgesBackbone,['subject' num2str(subjectID) '_edge_list_backbone.xlsx']);
+    writetable(communities,['subject' num2str(subjectID) '_community_assignment.xlsx']);
 end
