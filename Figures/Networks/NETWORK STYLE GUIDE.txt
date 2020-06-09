@@ -1,0 +1,42 @@
+FOR STATIC NETWORKS
+
+import edge list backbone file (if needed, change first two column headers to 'source' and 'target'); set to undirected edges
+import community assignment (if needed, add first two columns for 'Id' and 'Label'; change third column header to 'Community')
+
+On Overview tab:
+use Yifan Hu Proportional layout
+use Expansion layout x 10
+set node color based on community (darker palette)
+set node size based on degree (10-30 range)
+set edge color based on 'isNeg' (all gray palette); set 'false' to 100/100/100
+
+On Preview tab:
+Nodes - set border width to 0
+Node labels - enable, set to Calibri Light size 24, no proportional size
+Edges - disable curved, set to rescale weight (1-10 range), set color to 'original'
+(these should all be saved under custom "Default" presets)
+save as PDF with appropriate orientation
+convert to .tiff at: https://pdf2tiff.com/
+
+
+FOR DYNAMIC NETWORKS
+
+save dynamic edge list file as Excel spreadsheet by importing comma-delimited data from .txt file
+import dynamic edge list file; set to undirected edges and 'average' merge strategy
+
+On Data Laboratory tab:
+set configuration to use days instead of timestamps
+copy node ID to label column (if desired)
+
+On Overview tab:
+configure ForceAtlas layout to use 2000 repulsion strength, 1 attraction strength, 5 gravity
+enable timeline; adjust window so it is just larger than window interval
+
+will need to recreate network everytime for some reason
+to record, go to: https://www.apowersoft.com/free-online-screen-recorder?__c=1
+set screen size to 900 x 600
+
+in data set 18, both 19 and 21 are good for high granularity (19 is a bit better, but 21 is what we've used for static); 55 is better for low
+in data set 39, use 2 for high granularity, 5 or 7 for low (7 is what we've used for static) 
+
+
